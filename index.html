@@ -78,31 +78,31 @@
     <div class="editor-panel">
         <h2>Assembly Code (MDA-8086)</h2>
         <textarea id="asm-code">
-; Standard 'N' Pattern
-MOV AL, 01H
-OUT 1CH, AL
-MOV AL, 11000001B
-OUT 1AH, AL
+; Standard 'H' Pattern
+MOV AL, 01H  
+    OUT 1CH, AL
+    MOV AL, 80H     
+    OUT 1AH, AL
 
-MOV AL, 02H
-OUT 1CH, AL
-MOV AL, 11101111B
-OUT 1AH, AL
+    MOV AL, 02H    
+    OUT 1CH, AL
+    MOV AL, 11110111b   
+    OUT 1AH, AL
 
-MOV AL, 04H
-OUT 1CH, AL
-MOV AL, 11110111B
-OUT 1AH, AL
+    MOV AL, 04H      
+    OUT 1CH, AL
+    MOV AL, 11110111b       
+    OUT 1AH, AL
 
-MOV AL, 08H
-OUT 1CH, AL
-MOV AL, 11111011B
-OUT 1AH, AL
+    MOV AL, 08H      
+    OUT 1CH, AL
+    MOV AL, 11110111b       
+    OUT 1AH, AL
 
-MOV AL, 10H
-OUT 1CH, AL
-MOV AL, 11000001B
-OUT 1AH, AL
+    MOV AL, 10H      
+    OUT 1CH, AL
+    MOV AL, 80H      
+    OUT 1AH, AL
         </textarea>
         <button onclick="runSimulation()">Compile & Run</button>
         <button onclick="clearMatrix()" style="background-color: #555;">Clear Matrix</button>
