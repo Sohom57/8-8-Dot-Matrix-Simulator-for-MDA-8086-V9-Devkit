@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDA-8086 Dot Matrix Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .container {
+            display: flex;
+            gap: 2rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+        .editor-panel, .display-panel {
+            background: #2d2d2d;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            flex: 1;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        button:hover { background-color: #005a9e; }
+        .matrix {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: #111;
+            padding: 10px;
+            border-radius: 8px;
+            aspect-ratio: 1 / 1;
+        }
+        .led {
+            background-color: #333;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            aspect-ratio: 1 / 1;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+        }
+        .led.lit {
+            background-color: #ff0000;
+            box-shadow: 0 0 8px #ff0000, inset 0 0 2px #fff;
+        }
+        h2 { margin-top: 0; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="editor-panel">
+        <h2>Assembly Code (MDA-8086)</h2>
+        <textarea id="asm-code">
+; Standard 'N' Pattern
+MOV AL, 01H
+OUT 1CH, AL
+MOV AL, 11000001B
+OUT 1AH, AL
+
+MOV AL, 02H
+OUT 1CH, AL
+MOV AL, 11101111B
+OUT 1AH, AL
+
+MOV AL, 04H
+OUT 1CH, AL
+MOV AL, 11110111B
+OUT 1AH, AL
+
+MOV AL, 08H
+OUT 1CH, AL
+MOV AL, 11111011B
+OUT 1AH, AL
+
+MOV AL, 10H
+OUT 1CH, AL
+MOV AL, 11000001B
+OUT 1AH, AL
+        </textarea>
+        <button onclick="runSimulation()">Compile & Run</button>
+        <button onclick="clearMatrix()" style="background-color: #555;">Clear Matrix</button>
+    </div>
+
+    <div class="display-panel">
+        <h2>8x8 Dot Matrix</h2>
+        <div class="matrix" id="matrix"></div>
+    </div>
+</div>
+
+<script>
+    const matrixEl = document.getElementById('matrix');
+    
+    // Initialize 8x8 Grid
+    function initMatrix() {
+        matrixEl.innerHTML = '';
+        for (let i = 0; i < 64; i++) {
+            const led = document.createElement('div');
+            led.className = 'led';
+            led.id = `led-${i}`;
+            matrixEl.appendChild(led);
+        }
+    }
+
+    function clearMatrix() {
+        document.querySelectorAll('.led').forEach(led => led.classList.remove('lit'));
+    }
+
+    function runSimulation() {
+        clearMatrix();
+        const code = document.getElementById('asm-code').value.toUpperCase();
+        const lines = code.split('\n');
+        
+        let AL = 0;
+        let activeCols = [];
+
+        for (let line of lines) {
+            line = line.trim();
+            if (!line || line.startsWith(';')) continue;
+
+            // Parse MOV AL, value
+            let movMatch = line.match(/MOV\s+AL\s*,\s*([0-9A-F]+)H|MOV\s+AL\s*,\s*([01]+)B|MOV\s+AL\s*,\s*(\d+)/);
+            if (movMatch) {
+                if (line.includes('H')) AL = parseInt(movMatch[1], 16);
+                else if (line.includes('B')) AL = parseInt(movMatch[2], 2);
+                else AL = parseInt(movMatch[3], 10);
+                continue;
+            }
+
+            // Parse OUT port, AL
+            let outMatch = line.match(/OUT\s+([0-9A-F]+)H\s*,\s*AL/);
+            if (outMatch) {
+                let port = outMatch[1];
+                if (port === '1C') {
+                    // Column selection (1 = Active)
+                    activeCols = [];
+                    for(let i=0; i<8; i++) {
+                        if ((AL & (1 << i)) !== 0) activeCols.push(i);
+                    }
+                } else if (port === '1A') {
+                    // Row Data (0 = ON, 1 = OFF)
+                    for (let col of activeCols) {
+                        for (let row = 0; row < 8; row++) {
+                            // Bit 0 = Row 0 (Bottom), Bit 7 = Row 7 (Top)
+                            let bit = (AL >> row) & 1;
+                            let isLit = (bit === 0);
+                            
+                            if (isLit) {
+                                // Map to HTML grid (0 is top-left, 63 is bottom-right)
+                                let htmlRow = 7 - row;
+                                let cellIndex = (htmlRow * 8) + col;
+                                document.getElementById(`led-${cellIndex}`).classList.add('lit');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Run on load
+    initMatrix();
+</script>
+</body>
+</html>
