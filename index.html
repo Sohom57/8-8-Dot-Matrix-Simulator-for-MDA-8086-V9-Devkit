@@ -28,7 +28,7 @@
         }
         textarea {
             width: 100%;
-            height: 300px;
+            height: 400px;
             background: #1e1e1e;
             color: #d4d4d4;
             font-family: 'Courier New', Courier, monospace;
@@ -78,31 +78,47 @@
     <div class="editor-panel">
         <h2>Assembly Code (MDA-8086)</h2>
         <textarea id="asm-code">
-; Standard 'H' Pattern
-MOV AL, 01H  
-    OUT 1CH, AL
-    MOV AL, 80H     
-    OUT 1AH, AL
+; Display 'H' Pattern
+MOV AL, 80H
+OUT 1EH, AL
 
-    MOV AL, 02H    
+DISPLAY_H:
+    MOV AL, 01H
     OUT 1CH, AL
-    MOV AL, 11110111b   
+    MOV AL, 80H
     OUT 1AH, AL
+    CALL DELAY
 
-    MOV AL, 04H      
+    MOV AL, 02H
     OUT 1CH, AL
-    MOV AL, 11110111b       
+    MOV AL, 11110111B
     OUT 1AH, AL
+    CALL DELAY
 
-    MOV AL, 08H      
+    MOV AL, 04H
     OUT 1CH, AL
-    MOV AL, 11110111b       
+    MOV AL, 11110111B
     OUT 1AH, AL
+    CALL DELAY
 
-    MOV AL, 10H      
+    MOV AL, 08H
     OUT 1CH, AL
-    MOV AL, 80H      
+    MOV AL, 11110111B
     OUT 1AH, AL
+    CALL DELAY
+
+    MOV AL, 10H
+    OUT 1CH, AL
+    MOV AL, 80H
+    OUT 1AH, AL
+    CALL DELAY
+
+    JMP DISPLAY_H
+
+DELAY:
+    MOV CX, 0FFFH
+L1: LOOP L1
+    RET
         </textarea>
         <button onclick="runSimulation()">Compile & Run</button>
         <button onclick="clearMatrix()" style="background-color: #555;">Clear Matrix</button>
@@ -186,6 +202,7 @@ MOV AL, 01H
 
     // Run on load
     initMatrix();
+    runSimulation(); // Auto-run the code on initial page load
 </script>
 </body>
 </html>
